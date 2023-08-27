@@ -1,9 +1,10 @@
-cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required(VERSION 3.24)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_INSTALL_PREFIX "./")
+set(DOWNLOAD_EXTRACT_TIMESTAMP true)
 
 # 使用接口库
 add_library(compiler_flags INTERFACE)
@@ -21,9 +22,23 @@ project(tutorial VERSION 1.1)
 
 configure_file(config.h.in config.h)
 
-add_executable(tutorial tutorial.cpp)
-target_link_libraries(tutorial PUBLIC compiler_flags)
+include(FetchContent)
+FetchContent_Declare(
+	googletest
+	URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
+)
+# For windows: Prevent overriding the parent project's compiler/linker settings
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
+
+
+enable_testing()
+add_executable(tutorial test_sqrt.cpp)
+target_link_libraries(tutorial PUBLIC compiler_flags GTest::gtest_main)
 target_include_directories(tutorial PUBLIC ${PROJECT_BINARY_DIR})
+
+include(GoogleTest)
+gtest_discover_tests(tutorial)
 
 install(
 	TARGETS
@@ -42,20 +57,22 @@ install(
 
 
 # 添加测试
-enable_testing() # 启动测试·
-function(do_test target args result)
-	add_test(NAME COMP${args} COMMAND ${target} ${args})	# 添加一个测试
-	set_tests_properties( # 设置测试的属性
-		COMP${args}
-		PROPERTIES 
-			PASS_REGULAR_EXPRESSION 
-			${result}	
-	)
-			
-endfunction()
+#enable_testing() # 启动测试·
+#function(do_test target args result)
+#	add_test(NAME COMP${args} COMMAND ${target} ${args})	# 添加一个测试
+#	set_tests_properties( # 设置测试的属性
+#		COMP${args}
+#		PROPERTIES 
+#			PASS_REGULAR_EXPRESSION 
+#			${result}	
+#	)
+#			
+#endfunction()
+#
+#do_test(tutorial 9 3)
+#do_test(tutorial 16 4)
+#do_test(tutorial 100 10)
+#do_test(tutorial 0.0001 0.01)
 
-do_test(tutorial 9 3)
-do_test(tutorial 16 4)
-do_test(tutorial 100 10)
-do_test(tutorial 0.0001 0.01)
+
 
