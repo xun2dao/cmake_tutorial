@@ -1,0 +1,2 @@
+#define PROJECT_MAJOR 1
+#define PROJECT_MINOR 1
